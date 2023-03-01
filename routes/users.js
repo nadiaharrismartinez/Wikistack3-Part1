@@ -1,6 +1,7 @@
 const express = require('express');
-const { userList, userPages } = require('../views');
-const router = require('router');
+const router = express.Router();
+const { Page, User } = require('../models');
+const { userList, userPages, notFoundPage } = require('../views');
 
 router.get('/', async (req, res, next) => {
   try {
@@ -16,10 +17,14 @@ router.get('/:userId', async (req, res, next) => {
     const user = await User.findByPk(req.params.userId);
     const pages = await Page.findAll({
       where: {
-        authorId: req.params.userId,
+        userId: req.params.userId,
       },
     });
-    res.send(userPages(user, pages));
+    if (!user) {
+      res.status(404).send(notFoundPage());
+    } else {
+      res.send(userPages(user, pages));
+    }
   } catch (error) {
     next(error);
   }
